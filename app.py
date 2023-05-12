@@ -25,18 +25,11 @@ google = oauth.remote_app(
 )
 
 
-def login_is_required(function):
-    def wrapper(*args, **kwargs):
-        if "google_id" not in session:
-            abort(401)  # Authorization required
-        else:
-            return function()
-
-    return wrapper
-
-
 @app.route('/')
 def index():
+    if "google_id" in session:
+        return "Hello Guest! Logged in successfully <br/> <a href='/logout'><button>Logout</button></a>"
+
     return "Hello World <a href='/login'><button>Login</button></a>"
 
 
@@ -52,12 +45,6 @@ def logout():
     return redirect("/")
 
 
-@app.route("/protected_area")
-@login_is_required
-def protected_area():
-    return f"Hello Guest! Logged in successfully <br/> <a href='/logout'><button>Logout</button></a>"
-
-
 @app.route('/login/authorized')
 def authorized():
     resp = google.authorized_response()
@@ -67,7 +54,7 @@ def authorized():
             request.args['error_description']
         )
     session['google_id'] = (resp['access_token'], '')
-    return redirect("/protected_area")
+    return redirect("/")
 
 
 if __name__ == '__main__':
